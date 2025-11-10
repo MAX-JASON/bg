@@ -4,7 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家庭風險保障規劃 - 專業財務顧問分析</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // 檢測 Chart.js 是否加載成功，若失敗則嘗試本地備援
+        (function() {
+            function tryLoadSequentially(srcList, idx) {
+                if (idx >= srcList.length) {
+                    // 最終仍失敗，提示用戶
+                    console.error('Chart.js 加載失敗：CDN 與本地備援均不可用');
+                    setTimeout(function(){
+                        if (typeof Chart === 'undefined') {
+                            alert('⚠️ 無法載入圖表庫（Chart.js），圖表將無法顯示。\n\n處理方式：\n1) 建議下載 chart.umd.min.js 到此檔案同一資料夾\n2) 檔名為 chart.umd.min.js 後重新整理\n\n嘗試路徑：\n- ./chart.umd.min.js\n- ./modular-insurance/js/chart.umd.min.js');
+                        }
+                    }, 500);
+                    return;
+                }
+                var s = document.createElement('script');
+                s.src = srcList[idx];
+                s.onload = function() {
+                    if (typeof Chart === 'undefined') {
+                        // 異常情形，繼續嘗試下一個
+                        tryLoadSequentially(srcList, idx + 1);
+                    } else {
+                        console.log('Chart.js 載入來源：', srcList[idx]);
+                    }
+                };
+                s.onerror = function() {
+                    tryLoadSequentially(srcList, idx + 1);
+                };
+                document.head.appendChild(s);
+            }
+            window.addEventListener('DOMContentLoaded', function() {
+                if (typeof Chart === 'undefined') {
+                    console.warn('CDN Chart.js 未加載，嘗試本地備援...');
+                    tryLoadSequentially([
+                        'chart.umd.min.js',
+                        './chart.umd.min.js',
+                        'modular-insurance/js/chart.umd.min.js',
+                        './modular-insurance/js/chart.umd.min.js'
+                    ], 0);
+                }
+            });
+        })();
+    </script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -440,6 +482,7 @@
             box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
             position: relative;
             overflow: hidden;
+            z-index: 1;
         }
         
         .submit-btn::before {
@@ -451,12 +494,12 @@
             height: 100%;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             transition: left 0.4s ease;
-            z-index: 1;
+            z-index: -1;
         }
         
         .submit-btn span {
             position: relative;
-            z-index: 2;
+            z-index: 10;
         }
         
         .submit-btn:hover {
@@ -1703,15 +1746,23 @@
                             🚀 生成專業保障規劃報告
                         </button>
                         <button type="button" class="submit-btn" onclick="downloadProposal()" style="background: linear-gradient(135deg, #27ae60, #229954); margin-top: 10px;">
-                            📄 下載客戶建議書 (PDF)
+                            📄 列印客戶建議書 (約10-12頁A4)
                         </button>
+                        <!-- 測試按鈕已移除：正式版本不顯示預覽列印測試 -->
+                        <div style="text-align: center; margin-top: 15px; padding: 15px; background: #e8f5e9; border-radius: 8px; color: #2e7d32; font-size: 0.95rem;">
+                            💡 <strong>列印說明：</strong><br>
+                            • 第2頁：保障分析（約2-3頁A4）<br>
+                            • 第3頁：解決方案（約2-3頁A4）<br>
+                            • 第4頁：情境模擬（3個情境，每個1頁，共3頁A4）<br>
+                            • 圖表與數據完整呈現，適合客戶說明使用
+                        </div>
                     </form>
                 </div>
             </section>
         </div>
 
         <!-- 第二頁：保障分析 -->
-        <div id="page2" class="page">
+        <div id="page2" class="page" data-page-title="第二部分：風險診斷與保障缺口分析">
             <section class="card">
                 <h2 class="card-title">📊 風險診斷與保障缺口分析</h2>
                 
@@ -1980,7 +2031,7 @@
         </div>
 
         <!-- 第三頁：解決方案 -->
-        <div id="page3" class="page">
+        <div id="page3" class="page" data-page-title="第三部分：專屬解決方案與配置建議">
             <section class="card">
                 <h2 class="card-title">🛡️ 專屬解決方案與配置建議</h2>
                 <div class="section-intro" id="solutionIntroText">
@@ -2162,9 +2213,9 @@
         </div>
 
         <!-- 第四頁：實際醫療開銷 vs 保單賠付 -->
-        <div id="page4" class="page">
+        <div id="page4" class="page" data-page-title="第四部分：醫療情境模擬分析">
             <section class="card">
-                <h2 class="card-title">🎭 情境模擬</h2>
+                <h2 class="card-title">🎭 醫療情境模擬（實際費用vs保單賠付）</h2>
                 
                 <!-- 智能推薦提示 -->
                 <div id="scenarioRecommendation" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);">
@@ -2193,7 +2244,7 @@
                     </div>
 
                     <!-- 癌症治療標籤頁 -->
-                    <div class="tab-content active" id="cancer-tab">
+                    <div class="tab-content active" id="cancer-tab" data-print-title="情境A：癌症治療費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">癌症三期新式治療總費用 100 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2231,7 +2282,7 @@
                     </div>
 
                     <!-- 骨盆粉碎性骨折標籤頁 -->
-                    <div class="tab-content" id="pelvis-tab">
+                    <div class="tab-content" id="pelvis-tab" data-print-title="情境B：骨盆粉碎性骨折費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">骨盆粉碎性骨折重建手術總費用 80 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2269,7 +2320,7 @@
                     </div>
 
                     <!-- 急性腦中風標籤頁 -->
-                    <div class="tab-content" id="stroke-tab">
+                    <div class="tab-content" id="stroke-tab" data-print-title="情境C：急性腦中風費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">急性腦中風先進治療總費用 120 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2307,7 +2358,7 @@
                     </div>
 
                     <!-- 冠狀動脈繞道手術標籤頁 -->
-                    <div class="tab-content" id="heart-tab">
+                    <div class="tab-content" id="heart-tab" data-print-title="情境D：冠狀動脈繞道手術費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">冠狀動脈繞道手術總費用 90 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2345,7 +2396,7 @@
                     </div>
 
                     <!-- CAR-T 免疫療法標籤頁 -->
-                    <div class="tab-content" id="cart-tab">
+                    <div class="tab-content" id="cart-tab" data-print-title="情境E：CAR-T免疫療法費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">CAR-T 免疫療法（血癌）總費用 300 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2383,7 +2434,7 @@
                     </div>
 
                     <!-- 質子治療標籤頁 -->
-                    <div class="tab-content" id="proton-tab">
+                    <div class="tab-content" id="proton-tab" data-print-title="情境F：質子治療費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">質子治療（實體腫瘤）總費用 200 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2421,7 +2472,7 @@
                     </div>
 
                     <!-- ICU 重症照護標籤頁 -->
-                    <div class="tab-content" id="icu-tab">
+                    <div class="tab-content" id="icu-tab" data-print-title="情境G：ICU重症照護費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">ICU 重症照護 30 天總費用 150 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2459,7 +2510,7 @@
                     </div>
 
                     <!-- 器官移植標籤頁 -->
-                    <div class="tab-content" id="transplant-tab">
+                    <div class="tab-content" id="transplant-tab" data-print-title="情境H：器官移植費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">器官移植（肝/腎）總費用 250 萬元分析</p>
 
                         <div class="chart-grid">
@@ -2497,7 +2548,7 @@
                     </div>
 
                     <!-- 長照照顧標籤頁 -->
-                    <div class="tab-content" id="longcare-tab">
+                    <div class="tab-content" id="longcare-tab" data-print-title="情境I：長期照護費用分析">
                         <p style="text-align: center; margin-bottom: 20px;">長期照護 10 年總開銷 540 萬元分析（假設每月 4.5 萬）</p>
 
                         <div class="chart-grid">
@@ -2825,9 +2876,13 @@
         let lastAnalysisData = null;
 
         function generateAnalysis() {
+            console.log('✅ generateAnalysis 被調用');
+            
             // 獲取表單數據
             const clientName = document.getElementById('clientName').value;
             const clientAge = parseInt(document.getElementById('clientAge').value);
+            
+            console.log('表單數據:', { clientName, clientAge });
             // 年收入若未填，改以月收入 * 12 推算
             const annualIncomeInput = document.getElementById('annualIncome');
             const monthlyIncomeInput = document.getElementById('monthlyIncome');
@@ -2921,6 +2976,8 @@
 
         // ===== 以下為第4/5頁圖表與互動（取自 ds4 概念，調整為本頁欄位）=====
         let cancerChart, pelvisChart, strokeChart, heartChart, futureChart;
+        let cancerPieChart, pelvisPieChart, strokePieChart, heartPieChart;
+        let cartPieChart, protonPieChart, icuPieChart, transplantPieChart, longcarePieChart;
         let tabsBound = false;
 
         function getFormDataForMedical() {
@@ -3038,6 +3095,12 @@
         }
 
         function initMedicalCostCharts() {
+            // 檢查 Chart.js 是否已加載
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加載，跳過醫療費用圖表繪製');
+                return;
+            }
+            
             const fd = getFormDataForMedical();
             updateMedicalCaseDOM(fd);
 
@@ -3228,8 +3291,8 @@
             if (cancerPieCtx) {
                 const payout = Math.min(fd.medicalLimit, 100 - 10) + Math.min(fd.cancerBenefit, 24) + fd.criticalIllness;
                 const selfPay = Math.max(0, 100 - 10 - payout);
-                try { const existing = Chart.getChart(cancerPieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(cancerPieCtx.getContext('2d'), {
+                try { if (cancerPieChart) cancerPieChart.destroy(); } catch(e){}
+                cancerPieChart = new Chart(cancerPieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3249,8 +3312,8 @@
             if (pelvisPieCtx) {
                 const payout = Math.min(fd.medicalLimit, 80 - 15) + Math.min(fd.surgeryBenefit, 16);
                 const selfPay = Math.max(0, 80 - 15 - payout);
-                try { const existing = Chart.getChart(pelvisPieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(pelvisPieCtx.getContext('2d'), {
+                try { if (pelvisPieChart) pelvisPieChart.destroy(); } catch(e){}
+                pelvisPieChart = new Chart(pelvisPieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3270,8 +3333,8 @@
             if (strokePieCtx) {
                 const payout = Math.min(fd.medicalLimit, 120 - 20) + fd.criticalIllness;
                 const selfPay = Math.max(0, 120 - 20 - payout);
-                try { const existing = Chart.getChart(strokePieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(strokePieCtx.getContext('2d'), {
+                try { if (strokePieChart) strokePieChart.destroy(); } catch(e){}
+                strokePieChart = new Chart(strokePieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3291,8 +3354,8 @@
             if (heartPieCtx) {
                 const payout = Math.min(fd.medicalLimit, 90 - 12) + Math.min(fd.surgeryBenefit, 16) + fd.criticalIllness;
                 const selfPay = Math.max(0, 90 - 12 - payout);
-                try { const existing = Chart.getChart(heartPieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(heartPieCtx.getContext('2d'), {
+                try { if (heartPieChart) heartPieChart.destroy(); } catch(e){}
+                heartPieChart = new Chart(heartPieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3312,8 +3375,8 @@
             if (cartPieCtx) {
                 const payout = Math.min(fd.medicalLimit, 300 - 20) + Math.min(fd.cancerBenefit, 50) + fd.criticalIllness;
                 const selfPay = Math.max(0, 300 - 20 - payout);
-                try { const existing = Chart.getChart(cartPieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(cartPieCtx.getContext('2d'), {
+                try { if (cartPieChart) cartPieChart.destroy(); } catch(e){}
+                cartPieChart = new Chart(cartPieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3333,8 +3396,8 @@
             if (protonPieCtx) {
                 const payout = Math.min(fd.medicalLimit, 150 - 10) + Math.min(fd.cancerBenefit, 30) + fd.criticalIllness;
                 const selfPay = Math.max(0, 150 - 10 - payout);
-                try { const existing = Chart.getChart(protonPieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(protonPieCtx.getContext('2d'), {
+                try { if (protonPieChart) protonPieChart.destroy(); } catch(e){}
+                protonPieChart = new Chart(protonPieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3354,8 +3417,8 @@
             if (icuPieCtx) {
                 const payout = Math.min(fd.medicalLimit, 200 - 25) + fd.criticalIllness;
                 const selfPay = Math.max(0, 200 - 25 - payout);
-                try { const existing = Chart.getChart(icuPieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(icuPieCtx.getContext('2d'), {
+                try { if (icuPieChart) icuPieChart.destroy(); } catch(e){}
+                icuPieChart = new Chart(icuPieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3375,8 +3438,8 @@
             if (transplantPieCtx) {
                 const payout = Math.min(fd.medicalLimit, 250 - 30) + fd.criticalIllness;
                 const selfPay = Math.max(0, 250 - 30 - payout);
-                try { const existing = Chart.getChart(transplantPieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(transplantPieCtx.getContext('2d'), {
+                try { if (transplantPieChart) transplantPieChart.destroy(); } catch(e){}
+                transplantPieChart = new Chart(transplantPieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['健保給付', '保單賠付', '自付金額'],
@@ -3396,8 +3459,8 @@
             if (longcarePieCtx) {
                 const payout = (fd.medicalLimit > 0 ? 10 : 0) + Math.min((lastAnalysisData?.longTermCare || 0) * 120, 540);
                 const selfPay = Math.max(0, 540 - 36 - payout);
-                try { const existing = Chart.getChart(longcarePieCtx); if (existing) existing.destroy(); } catch(e){}
-                new Chart(longcarePieCtx.getContext('2d'), {
+                try { if (longcarePieChart) longcarePieChart.destroy(); } catch(e){}
+                longcarePieChart = new Chart(longcarePieCtx.getContext('2d'), {
                     type: 'pie',
                     data: {
                         labels: ['政府補助', '保單給付', '家庭自付'],
@@ -3471,6 +3534,12 @@
         }
 
         function initFutureTrendChart() {
+            // 檢查 Chart.js 是否已加載
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加載，跳過未來趨勢圖繪製');
+                return;
+            }
+            
             try { if (futureChart) futureChart.destroy(); } catch(e){}
             const ctxEl = document.getElementById('futureTrendChart');
             if (!ctxEl) return;
@@ -3753,6 +3822,13 @@
         function updateRiskRadar(age) {
             const ctx = document.getElementById('riskRadarChart');
             if (!ctx) return;
+            
+            // 檢查 Chart.js 是否已加載
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加載，跳過雷達圖繪製');
+                ctx.parentElement.innerHTML = '<div style="text-align:center; padding:40px; color:#e74c3c;">⚠️ 圖表庫未加載<br><small>請檢查網路連線後重新載入</small></div>';
+                return;
+            }
             
             // 根據年齡段計算風險分數
             let riskData;
@@ -4143,6 +4219,12 @@
         let pieCharts = {};
 
         function initMedicalPieCharts() {
+            // 檢查 Chart.js 是否已加載
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加載，跳過圓餅圖繪製');
+                return;
+            }
+            
             const data = getFormDataForMedical();
             
             // 定義每個案例的數據
@@ -4242,6 +4324,12 @@
             const canvas = document.getElementById('nhiTrendChart');
             if (!canvas) return;
             
+            // 檢查 Chart.js 是否已加載
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加載，跳過健保趨勢圖繪製');
+                return;
+            }
+            
             if (nhiTrendChart) nhiTrendChart.destroy();
             
             nhiTrendChart = new Chart(canvas.getContext('2d'), {
@@ -4284,6 +4372,12 @@
         function initFutureCostChart() {
             const canvas = document.getElementById('futureCostChart');
             if (!canvas) return;
+            
+            // 檢查 Chart.js 是否已加載
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加載，跳過未來費用圖繪製');
+                return;
+            }
             
             if (futureCostChart) futureCostChart.destroy();
             
@@ -4369,47 +4463,201 @@
             }
         };
 
-        // PDF建議書下載功能
+        /* 已移除 testPrintPreview() - 正式版本不再需要列印預覽測試函數 */
+
+        // PDF建議書下載功能（完全重寫 - 最簡單可靠版本）
         function downloadProposal() {
+            console.log('='.repeat(50));
+            console.log('downloadProposal 被調用');
+            
             if (!lastAnalysisData) {
-                alert('請先生成分析報告！');
+                alert('請先點擊「生成專業保障規劃報告」按鈕！');
                 return;
             }
 
-            // 使用瀏覽器原生列印功能
-            const originalDisplay = [];
-            const pages = document.querySelectorAll('.page');
+            // 保存當前狀態
+            const savedState = {
+                currentPageId: document.querySelector('.page.active')?.id || 'page1',
+                currentTabId: document.querySelector('#page4 .tab-content.active')?.id || 'cancer-tab',
+                pageDisplays: [],
+                tabDisplays: []
+            };
             
-            // 隱藏第1頁和第5頁，只顯示第2、4、3頁
-            pages.forEach((page, index) => {
-                originalDisplay[index] = page.style.display;
-                const pageNum = index + 1;
-                if (pageNum === 2 || pageNum === 3 || pageNum === 4) {
-                    page.style.display = 'block';
-                } else {
-                    page.style.display = 'none';
+            console.log('保存的狀態:', savedState);
+            
+            // ===== 新增：Canvas 轉換為圖片（解決圖表列印問題） =====
+            const convertCanvasToImages = () => {
+                console.log('開始轉換 Canvas → Image');
+                const canvases = document.querySelectorAll('canvas');
+                const converted = [];
+                
+                canvases.forEach((canvas, idx) => {
+                    try {
+                        // 確保 canvas 有實際內容
+                        if (canvas.width === 0 || canvas.height === 0) {
+                            const parent = canvas.parentElement;
+                            if (parent) {
+                                canvas.width = parent.clientWidth || 600;
+                                canvas.height = 360;
+                            }
+                        }
+                        
+                        // 使用 Chart.js API 或原生方法轉換
+                        let dataURL = '';
+                        if (typeof Chart !== 'undefined') {
+                            const chartInstance = Chart.getChart(canvas);
+                            if (chartInstance) {
+                                try {
+                                    chartInstance.resize();
+                                    chartInstance.update('none');
+                                    dataURL = chartInstance.toBase64Image('image/png', 1);
+                                } catch(e) {
+                                    console.warn('Chart.js 轉換失敗，使用原生方法', e);
+                                }
+                            }
+                        }
+                        
+                        // 備用方案：原生 Canvas API
+                        if (!dataURL || dataURL.length < 100) {
+                            dataURL = canvas.toDataURL('image/png', 1.0);
+                        }
+                        
+                        if (dataURL && dataURL.length > 500) {
+                            // 創建圖片元素替換 canvas
+                            const img = document.createElement('img');
+                            img.src = dataURL;
+                            img.className = 'chart-print-image';
+                            img.style.width = '100%';
+                            img.style.height = 'auto';
+                            img.style.maxWidth = canvas.style.width || '100%';
+                            img.style.display = 'block';
+                            img.style.margin = '0 auto';
+                            
+                            // 替換 DOM
+                            canvas.style.display = 'none';
+                            canvas.parentNode.insertBefore(img, canvas.nextSibling);
+                            
+                            converted.push({ canvas, img });
+                            console.log(`✓ Canvas #${idx} 已轉換 (${(dataURL.length/1024).toFixed(1)}KB)`);
+                        } else {
+                            console.warn(`✗ Canvas #${idx} 轉換失敗：資料過小`);
+                        }
+                    } catch(e) {
+                        console.error(`Canvas #${idx} 轉換錯誤:`, e);
+                    }
+                });
+                
+                console.log(`總共轉換 ${converted.length}/${canvases.length} 個圖表`);
+                return converted;
+            };
+            
+            // ===== 步驟1: 強制顯示所有頁面 =====
+            console.log('步驟1: 顯示所有頁面...');
+            document.querySelectorAll('.page').forEach((page, i) => {
+                savedState.pageDisplays[i] = page.style.display;
+                page.style.display = 'block';
+                page.style.visibility = 'visible';
+                page.style.opacity = '1';
+            });
+            
+            // ===== 步驟2: 只顯示推薦的情境標籤頁 =====
+            console.log('步驟2: 顯示推薦情境標籤頁...');
+            
+            // 根據年齡決定要顯示哪些情境
+            const age = (lastAnalysisData && lastAnalysisData.age) || 40;
+            let recommendedTabs = [];
+            if (age < 36) {
+                recommendedTabs = ['cancer', 'pelvis', 'heart'];
+            } else if (age < 51) {
+                recommendedTabs = ['cancer', 'cart', 'stroke'];
+            } else {
+                recommendedTabs = ['longcare', 'transplant', 'icu'];
+            }
+            
+            // 先隱藏所有情境
+            document.querySelectorAll('#page4 .tab-content').forEach((tab, i) => {
+                savedState.tabDisplays[i] = tab.style.display;
+                tab.style.display = 'none';
+                tab.style.visibility = 'hidden';
+                tab.classList.remove('active');
+            });
+            
+            // 只顯示推薦的情境
+            recommendedTabs.forEach(tabName => {
+                const tab = document.getElementById(`${tabName}-tab`);
+                if (tab) {
+                    tab.style.display = 'block';
+                    tab.style.visibility = 'visible';
+                    tab.classList.add('active');
+                    console.log(`  ✓ 顯示情境: ${tabName}`);
                 }
             });
+            
+            // ===== 步驟3: 重新初始化所有圖表 =====
+            console.log('步驟3: 重新初始化圖表...');
+            try {
+                // 等待一下讓 DOM 穩定
+                setTimeout(() => {
+                    // 確保所有頁面的圖表都已重新初始化
+                    if (typeof initPage2Analysis === 'function') initPage2Analysis();
+                    if (typeof initPage3Solutions === 'function') initPage3Solutions();
+                    if (typeof setupMedicalTabsOnce === 'function') setupMedicalTabsOnce();
+                    if (typeof initMedicalCostCharts === 'function') initMedicalCostCharts();
+                    if (typeof initMedicalPieCharts === 'function') initMedicalPieCharts();
+                    if (typeof initNHITrendChart === 'function') initNHITrendChart();
+                    if (typeof initFutureCostChart === 'function') initFutureCostChart();
+                    console.log('圖表重新初始化完成');
+                }, 100);
+            } catch(e) {
+                console.error('圖表初始化錯誤:', e);
+            }
+            
+            // 等待圖表渲染完成（增加等待時間）
+            setTimeout(() => {
+                // ===== 步驟4: 轉換 Canvas 為圖片（關鍵修復） =====
+                console.log('步驟4: 轉換圖表為圖片...');
+                const convertedCharts = convertCanvasToImages();
+                
+                console.log('準備工作完成，已轉換', convertedCharts.length, '個圖表');
+                
+                // 調用列印
+                continuePrintProcess();
+            }, 1200);
 
-            // 只印重點內容，避免超長與被截斷
+            // 使用瀏覽器原生列印功能
+            function continuePrintProcess() {
+            console.log('===== 銷毀所有 Chart 實例避免衝突 =====');
+            // 銷毀所有現存的 Chart 實例
+            document.querySelectorAll('canvas').forEach((canvas, i) => {
+                try {
+                    const chart = typeof Chart !== 'undefined' ? Chart.getChart(canvas) : null;
+                    if (chart) {
+                        chart.destroy();
+                        console.log(`  ✓ 銷毀 Chart #${i+1}`);
+                    }
+                } catch(e) {
+                    // 忽略錯誤
+                }
+            });
+            
+            const originalDisplay = [];
+            const pages = document.querySelectorAll('.page');
+            // 調整內容以優化列印排版
             const restoreDisplayMap = new Map();
+            const restoreClassMap = new Map();
             const rememberAndSet = (el, prop, value) => {
                 if (!el) return;
-                const key = `${prop}::${restoreDisplayMap.size}`;
-                restoreDisplayMap.set(el, el.style[prop]);
+                restoreDisplayMap.set(el, el.style[prop] || '');
                 el.style[prop] = value;
             };
             const hideSelector = (selector) => {
                 document.querySelectorAll(selector).forEach(el => rememberAndSet(el, 'display', 'none'));
             };
 
-            // 第2頁：保留快速診斷與缺口儀表板，隱藏重內容避免切頁
-            hideSelector('#page2 .section-intro');
-            hideSelector('#page2 #riskAwareness');
-            hideSelector('#page2 .risk-dashboard');
-            hideSelector('#page2 .scenario-cards');
-
-            // 第4頁：只列印年齡對應的3個推薦情境，其他隱藏
+            // 第2頁：保留所有重要內容，但優化排版
+            // 不隱藏任何內容，讓CSS控制分頁
+            
+            // 第4頁：根據年齡推薦情境，每個情境一頁
             try {
                 const age = (lastAnalysisData && lastAnalysisData.age) || 40;
                 let recommended = [];
@@ -4417,273 +4665,1021 @@
                 else if (age < 51) recommended = ['cancer', 'cart', 'stroke'];
                 else recommended = ['longcare', 'transplant', 'icu'];
 
-                // 隱藏Tab按鈕
-                hideSelector('#page4 .tab-buttons');
+                // 隱藏Tab按鈕區（列印時不需要）
+                const tabBtns = document.querySelector('#page4 .tab-buttons');
+                if (tabBtns) rememberAndSet(tabBtns, 'display', 'none');
+                
+                // 隱藏推薦提示區（列印時不需要）
+                const recBox = document.getElementById('scenarioRecommendation');
+                if (recBox) rememberAndSet(recBox, 'display', 'none');
 
-                // 顯示推薦的3個情境，隱藏其餘
+                // 先隱藏所有情境
                 document.querySelectorAll('#page4 .tab-content').forEach(el => {
-                    const id = el.id || '';
-                    const key = id.endsWith('-tab') ? id.slice(0, -4) : id;
-                    if (recommended.includes(key)) {
+                    rememberAndSet(el, 'display', 'none');
+                });
+                
+                // 只顯示推薦的情境（每個一頁）
+                recommended.forEach(key => {
+                    const el = document.getElementById(`${key}-tab`);
+                    if (el) {
                         rememberAndSet(el, 'display', 'block');
-                    } else {
-                        rememberAndSet(el, 'display', 'none');
+                        el.classList.add('active'); // 確保圖表可見
                     }
                 });
-            } catch(e) {}
+            } catch(e) {
+                console.error('列印準備錯誤:', e);
+            }
+            
+            // 隱藏第1頁和第5頁，顯示第2、3、4頁
+            pages.forEach((page, index) => {
+                originalDisplay[index] = page.style.display;
+                const pageNum = index + 1;
+                if (pageNum === 2 || pageNum === 3 || pageNum === 4) {
+                    page.style.display = 'block';
+                    page.classList.add('active'); // 確保所有內容可見
+                } else {
+                    page.style.display = 'none';
+                }
+            });
 
-            // 添加列印專用樣式
+            // ========== 列印CSS：精準控制版 ==========
             const printStyle = document.createElement('style');
             printStyle.id = 'print-style';
             printStyle.textContent = `
-                @page {
-                    size: A4;
-                    margin: 12mm;
+                @page { 
+                    size: A4 portrait; 
+                    margin: 12mm 10mm;
                 }
                 
                 @media print {
+                    /* ========== 全局基礎設定 ========== */
                     * { 
-                        box-sizing: border-box;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
+                        -webkit-print-color-adjust: exact !important; 
+                        print-color-adjust: exact !important;
+                        box-sizing: border-box !important;
                     }
                     
                     body { 
                         background: white !important; 
-                        margin: 0;
-                        padding: 0;
-                        font-size: 11pt !important;
+                        color: #222 !important; 
+                        font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif !important;
+                        font-size: 9.5pt !important; 
+                        line-height: 1.35 !important; 
+                        margin: 0 !important; 
+                        padding: 0 !important; 
                     }
                     
-                    .container {
+                    .container { 
+                        width: 100% !important; 
                         max-width: 100% !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
+                        padding: 0 !important; 
+                        margin: 0 !important; 
                     }
                     
-                    header {
-                        background: linear-gradient(135deg, #2c3e50, #3498db) !important;
-                        padding: 15px 20px !important;
-                        margin-bottom: 8mm !important;
-                        border-radius: 0 !important;
-                        page-break-after: avoid;
+                    /* 隱藏不需要的UI元素 */
+                    .page-navigation, .nav-btn, .submit-btn, 
+                    header, footer, button, .tab-buttons { 
+                        display: none !important; 
                     }
                     
-                    header h1 { font-size: 20pt !important; margin-bottom: 5px !important; }
-                    header .subtitle { font-size: 11pt !important; }
+                    /* ========== 頁面控制 ========== */
+                    #page1, #page5 { display: none !important; }
                     
-                    .page { 
-                        page-break-after: always;
+                    #page2, #page3, #page4 { 
                         display: block !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        break-inside: avoid;
+                        width: 100% !important;
+                        page-break-after: always !important;
                     }
                     
-                    .card { 
-                        box-shadow: none !important; 
-                        border: 1px solid #ddd !important;
-                        margin-bottom: 6mm !important;
-                        padding: 15px !important;
-                        page-break-inside: avoid;
-                        break-inside: avoid;
+                    #page4 { 
+                        page-break-after: auto !important; 
                     }
                     
-                    .card-title {
-                        font-size: 16pt !important;
-                        margin-bottom: 12px !important;
-                        padding-bottom: 8px !important;
+                    /* ========== 圖表顯示 ========== */
+                    canvas { 
+                        display: none !important; 
                     }
                     
-                    /* 第2頁優化 */
-                    .quick-diagnosis {
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                        padding: 15px !important;
-                        margin-bottom: 8mm !important;
-                        page-break-inside: avoid;
-                        break-inside: avoid;
+                    img.chart-print-image { 
+                        display: block !important;
+                        max-width: 100% !important;
+                        height: auto !important;
+                        margin: 3mm auto !important;
+                        page-break-inside: avoid !important;
                     }
                     
-                    .quick-diagnosis h3 { font-size: 14pt !important; margin-bottom: 12px !important; }
-                    .quick-diagnosis > div > div { padding: 10px !important; }
-                    .quick-diagnosis > div > div > div:first-child { font-size: 9pt !important; }
-                    .quick-diagnosis > div > div > div:nth-child(2) { font-size: 18pt !important; }
-                    .quick-diagnosis > div > div > div:last-child { font-size: 8pt !important; }
+                    /* ========== 通用標題樣式 ========== */
+                    .card-title, h2 { 
+                        font-size: 14pt !important; 
+                        font-weight: bold !important; 
+                        color: #2c3e50 !important;
+                        margin: 0 0 3mm 0 !important; 
+                        padding: 0 0 2mm 0 !important;
+                        border-bottom: 1.5pt solid #3498db !important;
+                    }
                     
-                    .section-intro, .risk-awareness { 
+                    h3, .section-subtitle { 
+                        font-size: 11pt !important; 
+                        font-weight: 600 !important;
+                        margin: 2.5mm 0 2mm 0 !important; 
+                    }
+                    
+                    h4 { 
                         font-size: 10pt !important; 
-                        margin-bottom: 6mm !important;
+                        font-weight: 600 !important;
+                        margin: 2mm 0 1mm 0 !important; 
+                    }
+                    
+                    p { 
+                        margin: 1.5mm 0 !important; 
+                        line-height: 1.4 !important; 
+                    }
+                    
+                    /* ========== 第2頁：保障分析 ========== */
+                    #page2 .card { 
+                        padding: 0 !important; 
+                        margin: 0 !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                    }
+                    
+                    /* 確保第2頁關鍵區塊顯示且不被切割 */
+                    #emotionalIntro,
+                    #riskAwareness,
+                    .quick-diagnosis,
+                    .risk-visualization-section,
+                    .scenario-cards,
+                    .coverage-gap-section,
+                    .financial-impact-box {
+                        display: block !important;
+                        visibility: visible !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    /* 情感引導文字 */
+                    #emotionalIntro {
+                        display: block !important;
+                        font-size: 9pt !important;
+                        line-height: 1.4 !important;
+                        margin-bottom: 3mm !important;
+                        padding: 2mm !important;
+                        background: #f8f9fa !important;
+                        border-left: 3pt solid #3498db !important;
+                    }
+                    
+                    /* 風險意識喚醒區 */
+                    #riskAwareness {
+                        display: block !important;
+                        margin-bottom: 3mm !important;
+                    }
+                    
+                    #riskAwareness > div {
+                        padding: 3mm !important;
+                        font-size: 8.5pt !important;
                         line-height: 1.4 !important;
                     }
                     
-                    /* 列印時隱藏重內容，避免切頁 */
-                    .risk-dashboard, .scenario-cards { display: none !important; }
+                    #riskAwareness h4 {
+                        font-size: 10.5pt !important;
+                        margin-bottom: 2mm !important;
+                    }
                     
-                    .radar-container canvas { 
-                        max-height: 200px !important;
+                    #riskAwareness ul {
+                        margin: 1mm 0 !important;
+                        padding-left: 4mm !important;
+                    }
+                    
+                    #riskAwareness li {
+                        margin-bottom: 1.5mm !important;
+                    }
+                    
+                    /* 快速診斷卡 */
+                    .quick-diagnosis { 
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                        color: white !important;
+                        padding: 3mm !important; 
+                        margin-bottom: 3mm !important;
+                        border-radius: 4px !important;
+                        display: block !important;
+                    }
+                    
+                    .quick-diagnosis h3 { 
+                        font-size: 11pt !important; 
+                        margin-bottom: 2mm !important;
+                        color: white !important;
+                        border: none !important;
+                    }
+                    
+                    .quick-diagnosis > div {
+                        display: grid !important;
+                        grid-template-columns: repeat(4, 1fr) !important;
+                        gap: 2mm !important;
+                    }
+                    
+                    .quick-diagnosis > div > div {
+                        padding: 2mm !important;
+                        font-size: 8pt !important;
+                        text-align: center !important;
+                    }
+                    
+                    .quick-diagnosis > div > div > div:nth-child(2) { 
+                        font-size: 13pt !important; 
+                        font-weight: bold !important;
+                    }
+                    
+                    /* 風險視覺化區 */
+                    .risk-visualization-section {
+                        display: block !important;
+                        margin-bottom: 3mm !important;
+                    }
+                    
+                    /* 風險儀表板 */
+                    .risk-dashboard { 
+                        display: grid !important;
+                        grid-template-columns: 40% 60% !important;
+                        gap: 3mm !important;
+                        margin-bottom: 3mm !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .radar-container {
+                        display: block !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .radar-container h3 {
+                        font-size: 10pt !important;
+                        text-align: center !important;
+                        margin-bottom: 2mm !important;
+                    }
+                    
+                    .radar-container img.chart-print-image { 
+                        max-height: 130px !important;
+                        display: block !important;
+                        margin: 0 auto !important;
                     }
                     
                     .risk-stats-cards {
-                        display: flex !important;
-                        flex-direction: column !important;
-                        gap: 8px !important;
+                        display: grid !important;
+                        grid-template-columns: 1fr !important;
+                        gap: 2mm !important;
                     }
                     
                     .stat-card {
-                        padding: 10px !important;
-                        font-size: 10pt !important;
+                        padding: 2mm !important;
+                        font-size: 8.5pt !important;
+                        margin: 0 !important;
+                        display: block !important;
+                    }
+                    
+                    .stat-value { 
+                        font-size: 13pt !important; 
+                        font-weight: bold !important;
+                    }
+                    
+                    /* 情境卡片 */
+                    .scenario-cards { 
+                        margin-bottom: 3mm !important;
+                        display: block !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .scenario-cards h3 {
+                        font-size: 11pt !important;
+                        margin-bottom: 2mm !important;
                     }
                     
                     .scenario-grid {
                         display: grid !important;
                         grid-template-columns: repeat(3, 1fr) !important;
-                        gap: 8px !important;
-                        break-inside: avoid;
+                        gap: 2mm !important;
+                        page-break-inside: avoid !important;
                     }
                     
                     .scenario-card {
-                        padding: 12px !important;
-                        font-size: 9pt !important;
-                        break-inside: avoid;
+                        padding: 2.5mm !important;
+                        font-size: 8pt !important;
+                        display: block !important;
+                        page-break-inside: avoid !important;
                     }
                     
-                    .coverage-gap-section {
-                        page-break-inside: avoid;
-                        break-inside: avoid;
+                    .scenario-icon { 
+                        font-size: 1.5rem !important; 
+                    }
+                    
+                    .scenario-cost { 
+                        font-size: 1.1rem !important; 
+                        font-weight: bold !important;
+                    }
+                    
+                    /* 缺口分析區 */
+                    .coverage-gap-section { 
+                        margin-top: 3mm !important;
+                        display: block !important;
+                        page-break-before: auto !important;
                     }
                     
                     .gap-dashboard {
-                        display: grid !important;
-                        grid-template-columns: 0.8fr 1.2fr !important;
-                        gap: 10px !important;
-                        margin-bottom: 6mm !important;
-                        break-inside: avoid;
+                        display: block !important;
+                        margin-bottom: 3mm !important;
+                        page-break-inside: avoid !important;
                     }
                     
-                    .gauge-container canvas {
-                        max-height: 140px !important;
+                    .gauge-container {
+                        display: inline-block !important;
+                        width: 32% !important;
+                        vertical-align: top !important;
+                        margin-right: 2% !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .gauge-container h3 {
+                        font-size: 10pt !important;
+                        text-align: center !important;
+                        margin-bottom: 2mm !important;
+                    }
+                    
+                    .gauge-container canvas,
+                    .gauge-container img.chart-print-image { 
+                        max-height: 100px !important; 
+                        display: block !important;
+                        margin: 0 auto !important;
+                    }
+                    
+                    #totalScore {
+                        font-size: 24pt !important;
+                        font-weight: bold !important;
+                    }
+                    
+                    #scoreRating {
+                        font-size: 11pt !important;
+                    }
+                    
+                    .gap-bars-container {
+                        display: inline-block !important;
+                        width: 65% !important;
+                        vertical-align: top !important;
                     }
                     
                     .gap-bar-item {
-                        margin-bottom: 8px !important;
-                        font-size: 9pt !important;
-                        break-inside: avoid;
-                    }
-                    
-                    /* 第3頁優化 */
-                    .priority-sections {
+                        margin-bottom: 2mm !important;
+                        padding: 2mm !important;
+                        font-size: 8.5pt !important;
                         display: block !important;
                     }
                     
-                    .priority-section {
-                        page-break-inside: avoid;
-                        break-inside: avoid;
-                        margin-bottom: 8mm !important;
+                    .gap-bar {
+                        height: 18px !important;
+                        background: #e0e0e0 !important;
+                        border-radius: 3px !important;
+                        overflow: hidden !important;
+                        margin: 1mm 0 !important;
                     }
                     
-                    .solution-card {
-                        page-break-inside: avoid;
-                        break-inside: avoid;
-                        margin-bottom: 6mm !important;
-                        padding: 12px !important;
+                    .gap-bar-fill {
+                        height: 100% !important;
+                        background: #3498db !important;
+                        transition: none !important;
+                    }
+                    
+                    /* 財務衝擊試算 */
+                    .financial-impact-box {
+                        margin-top: 3mm !important;
+                        padding: 3mm !important;
+                        font-size: 9pt !important;
+                        background: #fff8e1 !important;
+                        border: 1pt solid #ffc107 !important;
+                        display: block !important;
+                    }
+                    
+                    .financial-impact-box h4 {
+                        font-size: 11pt !important;
+                        margin-bottom: 2mm !important;
+                    }
+                    
+                    /* ========== 第3頁：解決方案 ========== */
+                    #page3 .card { 
+                        padding: 0 !important; 
+                        margin: 0 !important;
+                    }
+                    
+                    /* 顯示情感引導 */
+                    #solutionIntroText {
+                        display: block !important;
+                        font-size: 9pt !important;
+                        margin-bottom: 3mm !important;
+                        padding: 2mm !important;
+                        background: #f0f8ff !important;
+                        border-left: 3pt solid #2196f3 !important;
+                    }
+                    
+                    /* 問題對比區 */
+                    #problemSolutionGrid {
+                        display: grid !important;
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 3mm !important;
+                        margin-bottom: 3mm !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .problem-column, .solution-column {
+                        padding: 3mm !important;
+                        font-size: 8.5pt !important;
+                    }
+                    
+                    .problem-column h3, .solution-column h3 {
+                        font-size: 10.5pt !important;
+                        margin-bottom: 2mm !important;
+                    }
+                    
+                    .risk-list, .solution-list {
+                        margin: 1mm 0 !important;
+                        padding-left: 4mm !important;
+                        line-height: 1.5 !important;
+                    }
+                    
+                    .risk-list li, .solution-list li {
+                        margin-bottom: 1.5mm !important;
+                    }
+                    
+                    /* 優先級分類 */
+                    .priority-classification {
+                        margin-bottom: 3mm !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .priority-grid {
+                        display: grid !important;
+                        grid-template-columns: repeat(3, 1fr) !important;
+                        gap: 2mm !important;
+                    }
+                    
+                    .priority-box {
+                        padding: 2.5mm !important;
+                        font-size: 8pt !important;
+                        margin: 0 !important;
+                    }
+                    
+                    .priority-header h4 {
+                        font-size: 9.5pt !important;
+                        margin-bottom: 1.5mm !important;
+                    }
+                    
+                    .priority-list {
+                        margin: 1mm 0 !important;
+                        padding-left: 4mm !important;
+                    }
+                    
+                    .priority-list li {
+                        margin-bottom: 1mm !important;
+                        line-height: 1.4 !important;
+                    }
+                    
+                    /* 方案對比 */
+                    .solution-plans {
+                        margin-bottom: 3mm !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .plans-comparison {
+                        display: grid !important;
+                        grid-template-columns: repeat(3, 1fr) !important;
+                        gap: 2.5mm !important;
+                    }
+                    
+                    .plan-card {
+                        padding: 3mm !important;
+                        margin: 0 !important;
+                        font-size: 8pt !important;
+                        border: 1pt solid #ddd !important;
+                    }
+                    
+                    .plan-badge {
+                        font-size: 8pt !important;
+                        padding: 1mm 2mm !important;
+                        margin-bottom: 1.5mm !important;
+                    }
+                    
+                    .plan-title {
                         font-size: 10pt !important;
+                        margin-bottom: 1.5mm !important;
                     }
                     
-                    /* 第4頁情境模擬優化 */
-                    .tab-buttons { display: none !important; }
-                    
-                    .tab-content { 
-                        display: block !important; 
-                        page-break-before: always;
-                        page-break-inside: avoid;
-                        break-inside: avoid;
-                        margin-bottom: 0 !important;
-                        padding-top: 5mm !important;
+                    .plan-price {
+                        font-size: 9pt !important;
+                        margin: 1.5mm 0 !important;
                     }
                     
-                    .tab-content:first-of-type {
-                        page-break-before: avoid !important;
+                    .price-amount {
+                        font-size: 14pt !important;
+                        font-weight: bold !important;
+                    }
+                    
+                    .plan-list {
+                        font-size: 7.5pt !important;
+                        margin: 1mm 0 !important;
+                        padding-left: 3mm !important;
+                    }
+                    
+                    .plan-list li {
+                        margin-bottom: 1mm !important;
+                    }
+                    
+                    .plan-result {
+                        font-size: 8pt !important;
+                        margin-top: 2mm !important;
+                    }
+                    
+                    .result-score {
+                        font-size: 13pt !important;
+                        font-weight: bold !important;
+                    }
+                    
+                    /* 保費負擔能力 */
+                    .affordability-check {
+                        padding: 3mm !important;
+                        margin-top: 3mm !important;
+                        font-size: 8.5pt !important;
+                        background: #f5f5f5 !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    .affordability-check h4 {
+                        font-size: 10.5pt !important;
+                        margin-bottom: 2mm !important;
+                    }
+                    
+                    .affordability-grid {
+                        display: grid !important;
+                        grid-template-columns: repeat(4, 1fr) !important;
+                        gap: 2mm !important;
+                        margin: 1.5mm 0 !important;
+                    }
+                    
+                    .affordability-item {
+                        text-align: center !important;
+                    }
+                    
+                    .afford-value {
+                        font-size: 12pt !important;
+                        font-weight: bold !important;
+                    }
+                    
+                    /* ========== 第4頁：情境模擬 ========== */
+                    #page4 .card { 
+                        padding: 0 !important; 
+                        margin: 0 !important;
+                    }
+                    
+                    /* 預設隱藏所有情境 */
+                    #page4 .tab-content {
+                        display: none !important;
+                        page-break-before: auto !important;
+                        page-break-inside: avoid !important;
+                    }
+                    
+                    /* 只顯示被 JavaScript 設為 display:block 的情境 */
+                    #page4 .tab-content[style*="display: block"] {
+                        display: block !important;
+                        page-break-before: always !important;
+                        padding: 0 !important;
+                    }
+                    
+                    /* 第一個顯示的情境不換頁 */
+                    #page4 .tab-content[style*="display: block"]:first-of-type {
+                        page-break-before: auto !important;
+                    }
+                    
+                    /* 情境標題 */
+                    #cancer-tab::before { content: "情境 A：癌症治療費用分析"; }
+                    #pelvis-tab::before { content: "情境 B：骨盆粉碎性骨折費用分析"; }
+                    #heart-tab::before { content: "情境 C：冠狀動脈手術費用分析"; }
+                    #stroke-tab::before { content: "情境 D：急性腦中風費用分析"; }
+                    #cart-tab::before { content: "情境 E：CAR-T免疫療法費用分析"; }
+                    #icu-tab::before { content: "情境 F：ICU重症照護費用分析"; }
+                    #transplant-tab::before { content: "情境 G：器官移植費用分析"; }
+                    #longcare-tab::before { content: "情境 H：長期照護費用分析"; }
+                    
+                    .tab-content::before {
+                        display: block !important;
+                        font-size: 13pt !important;
+                        font-weight: bold !important;
+                        color: #2c3e50 !important;
+                        text-align: center !important;
+                        padding: 3mm 0 !important;
+                        margin-bottom: 3mm !important;
+                        border-bottom: 1.5pt solid #3498db !important;
+                        background: #f0f4f8 !important;
+                        page-break-after: avoid !important;
                     }
                     
                     .tab-content > p {
-                        font-size: 11pt !important;
-                        margin-bottom: 8px !important;
+                        font-size: 9.5pt !important;
+                        text-align: center !important;
+                        margin-bottom: 3mm !important;
+                        font-weight: 500 !important;
+                        page-break-after: avoid !important;
                     }
                     
+                    /* 圖表區域 */
                     .chart-grid {
                         display: grid !important;
                         grid-template-columns: 1fr 1fr !important;
-                        gap: 10px !important;
-                        margin-bottom: 10px !important;
-                        page-break-inside: avoid;
-                        break-inside: avoid;
+                        gap: 3mm !important;
+                        margin-bottom: 3mm !important;
+                        page-break-inside: avoid !important;
                     }
                     
-                    .chart-container { 
-                        height: 180px !important;
-                        page-break-inside: avoid;
-                        break-inside: avoid;
+                    .chart-container {
+                        height: auto !important;
+                        min-height: 0 !important;
+                        page-break-inside: avoid !important;
                     }
                     
                     .chart-container h4 {
-                        font-size: 10pt !important;
-                        margin-bottom: 5px !important;
+                        font-size: 9pt !important;
+                        text-align: center !important;
+                        margin-bottom: 2mm !important;
                     }
                     
+                    .chart-container img.chart-print-image {
+                        max-height: 140px !important;
+                        width: auto !important;
+                        display: block !important;
+                        margin: 2mm auto !important;
+                    }
+                    
+                    /* 費用對比卡片 */
                     .comparison-grid {
                         display: grid !important;
                         grid-template-columns: repeat(4, 1fr) !important;
-                        gap: 8px !important;
-                        font-size: 9pt !important;
-                        page-break-inside: avoid;
-                        break-inside: avoid;
+                        gap: 2mm !important;
+                        margin-bottom: 3mm !important;
+                        page-break-inside: avoid !important;
                     }
                     
                     .comparison-item {
-                        padding: 10px !important;
-                        break-inside: avoid;
+                        padding: 2mm !important;
+                        font-size: 8pt !important;
+                        text-align: center !important;
+                        page-break-inside: avoid !important;
                     }
                     
                     .comparison-item h3 {
-                        font-size: 10pt !important;
-                        margin-bottom: 6px !important;
+                        font-size: 9pt !important;
+                        margin-bottom: 1.5mm !important;
                     }
                     
                     .comparison-value {
-                        font-size: 16pt !important;
-                        margin: 6px 0 !important;
+                        font-size: 15pt !important;
+                        font-weight: bold !important;
+                        margin: 1.5mm 0 !important;
                     }
                     
                     .comparison-item p {
-                        font-size: 8pt !important;
+                        font-size: 7.5pt !important;
                         line-height: 1.3 !important;
+                        margin: 0 !important;
                     }
                     
-                    /* 隱藏不需要的元素 */
-                    .submit-btn { display: none !important; }
-                    .section-subtitle { font-size: 13pt !important; margin: 8px 0 !important; }
+                    /* 長照說明區 */
+                    #longcare-tab > div[style*="background: #fff3cd"] {
+                        padding: 2.5mm !important;
+                        font-size: 8pt !important;
+                        margin-top: 3mm !important;
+                        display: block !important;
+                    }
                     
-                    /* 緊湊化間距 */
-                    h2, h3, h4 { margin-top: 0 !important; }
-                    p { margin: 4px 0 !important; }
+                    #longcare-tab > div[style*="background: #fff3cd"] h4 {
+                        font-size: 10pt !important;
+                        margin-bottom: 2mm !important;
+                    }
+                    
+                    #longcare-tab > div[style*="background: #fff3cd"] ul {
+                        margin: 1mm 0 !important;
+                        padding-left: 4mm !important;
+                    }
+                    
+                    #longcare-tab > div[style*="background: #fff3cd"] li {
+                        margin-bottom: 1mm !important;
+                        line-height: 1.4 !important;
+                    }
+                    
+                    /* ========== 通用優化 ========== */
+                    ul, ol { 
+                        margin: 1.5mm 0 !important; 
+                        padding-left: 4mm !important; 
+                    }
+                    
+                    li { 
+                        margin-bottom: 1mm !important; 
+                    }
+                    
+                    table { 
+                        font-size: 8.5pt !important; 
+                        border-collapse: collapse !important;
+                        width: 100% !important;
+                    }
+                    
+                    th, td {
+                        padding: 1.5mm !important;
+                        border: 0.5pt solid #ddd !important;
+                    }
+                    
+                    /* 移除陰影 */
+                    * {
+                        box-shadow: none !important;
+                        text-shadow: none !important;
+                    }
                 }
             `;
             document.head.appendChild(printStyle);
 
-            // 觸發列印
-            window.print();
+            console.log('準備觸發列印對話框...');
 
-            // 列印完成後恢復原狀
-            setTimeout(() => {
-                pages.forEach((page, index) => {
-                    page.style.display = originalDisplay[index];
+            // ===== 步驟5: 將所有圖表轉為圖片（最可靠方法）=====
+            console.log('步驟5: 將Canvas轉為圖片...');
+            window.__canvasToImageList = [];
+            
+            try {
+                const allCanvases = document.querySelectorAll('canvas');
+                console.log(`找到 ${allCanvases.length} 個Canvas元素`);
+                
+                allCanvases.forEach((canvas, i) => {
+                    try {
+                        let imgSrc = null;
+
+                        // 若尺寸為0，嘗試強制設定可用尺寸再更新圖表
+                        if (canvas.width === 0 || canvas.height === 0) {
+                            console.warn(`  ⚠️ Canvas ${i+1} 尺寸為0，嘗試強制設定尺寸再轉換`);
+                            const fallbackW = canvas.parentElement?.clientWidth || 600;
+                            canvas.width = fallbackW;
+                            canvas.height = 300;
+                            try {
+                                const forcedChart = typeof Chart !== 'undefined' ? Chart.getChart(canvas) : null;
+                                if (forcedChart) {
+                                    forcedChart.resize();
+                                    forcedChart.update('none');
+                                }
+                            } catch(e) {
+                                console.warn(`    ⚠️ 強制更新圖表失敗: ${e.message}`);
+                            }
+                        }
+                        
+                        // 方法1: 嘗試用Chart.js的toBase64Image（若圖表尚未初始化則嘗試延遲初始化）
+                        if (typeof Chart !== 'undefined') {
+                            let chart = Chart.getChart(canvas);
+                            if (!chart && typeof initMedicalCostCharts === 'function') {
+                                try { initMedicalCostCharts(); chart = Chart.getChart(canvas); } catch(e) {}
+                            }
+                            if (!chart && typeof initMedicalPieCharts === 'function') {
+                                try { initMedicalPieCharts(); chart = Chart.getChart(canvas); } catch(e) {}
+                            }
+                            if (!chart && typeof initPage2Analysis === 'function') {
+                                try { initPage2Analysis(); chart = Chart.getChart(canvas); } catch(e) {}
+                            }
+                            if (!chart && typeof initNHITrendChart === 'function') {
+                                try { initNHITrendChart(); chart = Chart.getChart(canvas); } catch(e) {}
+                            }
+                            if (chart && typeof chart.toBase64Image === 'function') {
+                                try {
+                                    chart.resize();
+                                    chart.update('none');
+                                    imgSrc = chart.toBase64Image('image/png', 1);
+                                    console.log(`  ✅ 圖表 ${i+1}: Chart.toBase64Image 成功`);
+                                } catch(e) {
+                                    console.warn(`  ⚠️ 圖表 ${i+1}: Chart.toBase64Image 失敗:`, e.message);
+                                }
+                            }
+                        }
+                        
+                        // 方法2: 如果方法1失敗，用Canvas原生方法
+                        if (!imgSrc && canvas.toDataURL) {
+                            try {
+                                imgSrc = canvas.toDataURL('image/png', 1.0);
+                                console.log(`  ✅ Canvas ${i+1}: toDataURL 成功`);
+                            } catch(e) {
+                                console.error(`  ❌ Canvas ${i+1}: toDataURL 失敗:`, e.message);
+                            }
+                        }
+                        
+                        // 檢查圖片是否有效（長度要夠長，不是空白的base64）
+                        if (imgSrc && imgSrc.length > 500) {
+                            // 創建圖片元素並設定樣式
+                            const img = document.createElement('img');
+                            img.src = imgSrc;
+                            img.className = 'chart-print-image';
+                            img.setAttribute('data-canvas-index', i);
+                            img.style.cssText = `
+                                width: ${canvas.style.width || canvas.width + 'px'} !important;
+                                height: auto !important;
+                                display: block !important;
+                                max-width: 100% !important;
+                                margin: 0 auto !important;
+                                page-break-inside: avoid !important;
+                            `;
+                            
+                            // 插入到Canvas的父容器中
+                            const parent = canvas.parentElement;
+                            if (parent) {
+                                // 在Canvas前面插入圖片
+                                parent.insertBefore(img, canvas);
+                                // 隱藏原始Canvas
+                                canvas.style.display = 'none';
+                                canvas.setAttribute('data-hidden-for-print', 'true');
+                                
+                                window.__canvasToImageList.push({ canvas, img, parent });
+                                console.log(`  ✅ 圖表 ${i+1} 已轉為圖片並插入DOM (${Math.round(imgSrc.length/1024)}KB)`);
+                            } else {
+                                console.error(`  ❌ 圖表 ${i+1} 沒有父元素`);
+                            }
+                        } else {
+                            console.error(`  ❌ 圖表 ${i+1} 轉換失敗或圖片太小: ${imgSrc ? imgSrc.length : 0} bytes`);
+                        }
+                    } catch(e) {
+                        console.error(`  ❌ 處理 Canvas ${i+1} 時發生錯誤:`, e);
+                    }
                 });
-                const style = document.getElementById('print-style');
-                if (style) style.remove();
-                // 還原被隱藏/改動的元素
-                restoreDisplayMap.forEach((prev, el) => { try { el.style.display = prev; } catch(e){} });
+                
+                console.log(`\n✅ 成功轉換 ${window.__canvasToImageList.length}/${allCanvases.length} 個圖表`);
+                console.log(`📊 插入的圖片元素:`, document.querySelectorAll('img.chart-print-image').length);
+                
+            } catch(e) {
+                console.error('❌ 圖表轉換過程發生嚴重錯誤:', e);
+            }
+            
+            // ===== 步驟6: 等待圖片完全載入後觸發列印 =====
+            console.log('\n步驟6: 等待圖片載入完成...');
+            setTimeout(() => {
+                const imageCount = document.querySelectorAll('img.chart-print-image').length;
+                console.log('='.repeat(60));
+                console.log('📊 列印準備完成報告：');
+                console.log('  - Canvas元素總數:', document.querySelectorAll('canvas').length);
+                console.log('  - 成功轉換數量:', window.__canvasToImageList.length);
+                console.log('  - 圖片元素數量:', imageCount);
+                console.log('  - 可見頁面數:', document.querySelectorAll('.page[style*="block"]').length);
+                console.log('='.repeat(60));
+                
+                if (imageCount === 0) {
+                    console.error('⚠️⚠️⚠️ 警告：沒有成功轉換任何圖表！');
+                }
+                
+                console.log('\n🖨️ 觸發列印...\n');
+                window.print();
+                
+                // 列印完成後恢復Canvas（延遲執行）
+                setTimeout(() => {
+                    console.log('📝 恢復原始Canvas...');
+                    try {
+                        if (window.__canvasToImageList && Array.isArray(window.__canvasToImageList)) {
+                            window.__canvasToImageList.forEach(({ canvas, img }) => {
+                                try {
+                                    if (canvas) {
+                                        canvas.style.display = '';
+                                        canvas.removeAttribute('data-hidden-for-print');
+                                    }
+                                    if (img && img.parentNode) {
+                                        img.parentNode.removeChild(img);
+                                    }
+                                } catch(e) {
+                                    console.error('恢復單個Canvas時出錯:', e);
+                                }
+                            });
+                            window.__canvasToImageList = [];
+                        }
+                        console.log('✅ Canvas已恢復');
+                    } catch(e) {
+                        console.error('恢復Canvas總錯誤:', e);
+                    }
+                }, 2000);
+            }, 2000); // 結束 setTimeout
+            } // 結束 continuePrintProcess
+
+            // 在列印對話框打開後延遲執行恢復（給瀏覽器時間渲染）
+            const cleanup = () => {
+                setTimeout(() => {
+                    // 恢復所有頁面的顯示狀態
+                    document.querySelectorAll('.page').forEach(page => {
+                        page.style.display = 'none';
+                        page.classList.remove('active');
+                    });
+                    // 只顯示原本的當前頁
+                    const pageToShow = document.getElementById(savedState.currentPageId);
+                    if (pageToShow) {
+                        pageToShow.style.display = 'block';
+                        pageToShow.classList.add('active');
+                    }
+                    
+                    // 移除列印樣式
+                    const style = document.getElementById('print-style');
+                    if (style) style.remove();
+                    
+                    // 還原被修改的元素（安全檢查）
+                    if (typeof restoreDisplayMap !== 'undefined' && restoreDisplayMap) {
+                        restoreDisplayMap.forEach((prev, el) => { 
+                            try { 
+                                if (el && el.style) el.style.display = prev; 
+                            } catch(e){} 
+                        });
+                    }
+                    
+                    // 恢復第4頁的tab狀態到原本的標籤頁
+                    document.querySelectorAll('#page4 .tab-content').forEach(el => {
+                        el.style.display = 'none';
+                        el.classList.remove('active');
+                    });
+                    const tabToShow = document.getElementById(savedState.currentTabId);
+                    if (tabToShow) {
+                        tabToShow.style.display = 'block';
+                        tabToShow.classList.add('active');
+                    }
+                    
+                    // 恢復導航和按鈕元素的顯示
+                    document.querySelectorAll('.page-navigation, .nav-btn, .submit-btn, .tab-buttons, .tab-button').forEach(el => {
+                        el.style.display = '';
+                    });
+                    const scenarioRec = document.getElementById('scenarioRecommendation');
+                    if (scenarioRec) scenarioRec.style.display = '';
+
+                    console.log('列印完成，狀態已恢復');
+                }, 1500);
+            };
+            
+            // 監聽列印事件
+            const afterPrint = () => {
+                window.removeEventListener('afterprint', afterPrint);
+                cleanup();
+            };
+            window.addEventListener('afterprint', afterPrint);
+            
+            // 備用清理（如果afterprint不觸發）
+            setTimeout(cleanup, 3000);
+        } // 結束 downloadProposal
+
+        // 初始化理想建議提示
+        updateIdealHints();
+        
+        // ===== 確保按鈕事件綁定（備用方案） =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 DOM 載入完成，檢查按鈕...');
+            
+            // 為生成報告按鈕加入事件監聽器（備用）
+            const generateBtn = document.querySelector('button[onclick="generateAnalysis()"]');
+            if (generateBtn) {
+                console.log('✅ 找到生成報告按鈕，綁定事件...');
+                generateBtn.addEventListener('click', function(e) {
+                    console.log('📝 按鈕被點擊（事件監聽器）');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof generateAnalysis === 'function') {
+                        generateAnalysis();
+                    } else {
+                        console.error('❌ generateAnalysis 函式不存在！');
+                        alert('錯誤：生成報告功能未載入，請重新整理頁面');
+                    }
+                });
+            } else {
+                console.warn('⚠️ 未找到生成報告按鈕');
+            }
+            
+            // 檢查關鍵函式是否存在
+            console.log('函式檢查:', {
+                generateAnalysis: typeof generateAnalysis,
+                downloadProposal: typeof downloadProposal,
+                showPage: typeof showPage
+            });
+        });
+        
+        // ===== 頁面載入診斷報告 =====
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                console.log('\n' + '='.repeat(60));
+                console.log('📊 頁面載入診斷報告');
+                console.log('='.repeat(60));
+                console.log('Chart.js狀態:', typeof Chart !== 'undefined' ? '✅ 已載入' : '❌ 未載入');
+                console.log('Canvas元素數量:', document.querySelectorAll('canvas').length);
+                console.log('頁面數量:', document.querySelectorAll('.page').length);
+                console.log('標籤頁數量:', document.querySelectorAll('.tab-content').length);
+                
+                if (typeof Chart !== 'undefined') {
+                    // 計算Chart實例數量
+                    let chartCount = 0;
+                    document.querySelectorAll('canvas').forEach(canvas => {
+                        if (Chart.getChart(canvas)) chartCount++;
+                    });
+                    console.log('Chart實例數量:', chartCount);
+                } else {
+                    console.error('⚠️ Chart.js未載入，圖表功能將無法使用！');
+                    console.log('請檢查：');
+                    console.log('1. 網路連線是否正常');
+                    console.log('2. 或下載chart.umd.min.js到本地');
+                }
+                console.log('='.repeat(60) + '\n');
             }, 1000);
-        }
+        });
+        
+        // ===== 移除舊版列印事件處理（已整合到 downloadProposal 流程） =====
+        // （保留占位註解，避免日後重複新增）
     </script>
 </body>
 </html>
