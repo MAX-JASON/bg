@@ -17,7 +17,7 @@
                             alert('⚠️ 無法載入圖表庫（Chart.js），圖表將無法顯示。\n\n處理方式：\n1) 建議下載 chart.umd.min.js 到此檔案同一資料夾\n2) 檔名為 chart.umd.min.js 後重新整理\n\n嘗試路徑：\n- ./chart.umd.min.js\n- ./modular-insurance/js/chart.umd.min.js');
                         }
                     }, 500);
-                    return;
+                    return; 
                 }
                 var s = document.createElement('script');
                 s.src = srcList[idx];
